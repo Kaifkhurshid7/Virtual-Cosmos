@@ -100,4 +100,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-**Developed for the Fullstack Internship Assignment • 2025** 🚀
+
