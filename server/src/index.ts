@@ -16,7 +16,7 @@ app.use(cors());
 const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: '*', // Allow all for dev; restrict in prod
     methods: ['GET', 'POST'],
   },
 });

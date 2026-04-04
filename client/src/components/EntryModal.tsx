@@ -16,8 +16,21 @@ export const EntryModal = ({ socket }: EntryModalProps) => {
   const [color, setColor] = useState(COLORS[0]);
   const { setMe } = useCosmosStore();
 
+  const [isConnected, setIsConnected] = useState(socket?.connected || false);
+
+  useState(() => {
+    if (!socket) return;
+    const update = () => setIsConnected(socket.connected);
+    socket.on('connect', update);
+    socket.on('disconnect', update);
+    return () => {
+      socket.off('connect', update);
+      socket.off('disconnect', update);
+    };
+  });
+
   const handleJoin = () => {
-    if (!name.trim() || !socket) return;
+    if (!name.trim() || !socket || !socket.connected) return;
     
     // Random position
     const x = 100 + Math.random() * 1000;
@@ -68,10 +81,10 @@ export const EntryModal = ({ socket }: EntryModalProps) => {
 
           <button
             onClick={handleJoin}
-            disabled={!name.trim()}
+            disabled={!name.trim() || !isConnected}
             className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/30 active:scale-95"
           >
-            Launch into Cosmos
+            {!isConnected ? 'Connecting...' : 'Launch into Cosmos'}
           </button>
         </div>
       </motion.div>
