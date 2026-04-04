@@ -7,6 +7,7 @@ interface CosmosStore {
   messages: Record<string, Message[]>; // roomId -> messages
   activeRooms: Set<string>; // Connected peer IDs
   typingPeers: Record<string, boolean>; // peerId -> isTyping
+  toasts: { id: string; message: string; type: 'success' | 'info' | 'warning' }[];
 
   setMe: (user: UserState | null) => void;
   setUsers: (users: UserState[]) => void;
@@ -20,6 +21,8 @@ interface CosmosStore {
   disconnectPeer: (peerId: string) => void;
   
   setTyping: (peerId: string, isTyping: boolean) => void;
+  addToast: (message: string, type?: 'success' | 'info' | 'warning') => void;
+  removeToast: (id: string) => void;
 }
 
 export const useCosmosStore = create<CosmosStore>((set) => ({
@@ -28,6 +31,7 @@ export const useCosmosStore = create<CosmosStore>((set) => ({
   messages: {},
   activeRooms: new Set(),
   typingPeers: {},
+  toasts: [],
 
   setMe: (me) => set({ me }),
   setUsers: (users) => set({ users: users.filter(u => u.id !== useCosmosStore.getState().me?.id) }),
@@ -69,5 +73,13 @@ export const useCosmosStore = create<CosmosStore>((set) => ({
 
   setTyping: (peerId, isTyping) => set((state) => ({
     typingPeers: { ...state.typingPeers, [peerId]: isTyping }
+  })),
+
+  addToast: (message, type = 'info') => set((state) => ({
+    toasts: [...state.toasts, { id: Math.random().toString(36), message, type }].slice(-3)
+  })),
+
+  removeToast: (id) => set((state) => ({
+    toasts: state.toasts.filter(t => t.id !== id)
   }))
 }));

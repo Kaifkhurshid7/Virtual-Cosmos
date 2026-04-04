@@ -28,6 +28,24 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
         if (canvasRef.current) {
             canvasRef.current.appendChild(pixiApp.canvas);
         }
+
+        // Add Starfield
+        const starCount = 200;
+        const stars = new PIXI.Graphics();
+        for (let i = 0; i < starCount; i++) {
+          const x = Math.random() * 1200;
+          const y = Math.random() * 700;
+          const radius = Math.random() * 1.5;
+          const alpha = Math.random();
+          stars.circle(x, y, radius).fill({ color: 0xffffff, alpha });
+        }
+        pixiApp.stage.addChild(stars);
+        
+        // Simple flicker animation
+        pixiApp.ticker.add(() => {
+           stars.alpha = 0.5 + Math.sin(Date.now() / 1000) * 0.2;
+        });
+
         setApp(pixiApp);
     });
 
