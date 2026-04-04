@@ -2,7 +2,7 @@ import { Socket, Server } from 'socket.io';
 import { ClientToServerEvents, ServerToClientEvents, Message } from '../../../shared/types';
 import { usersMap } from '../state/usersMap';
 import { roomsMap } from '../state/roomsMap';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 
 export const registerChatHandlers = (
   io: Server<ClientToServerEvents, ServerToClientEvents>,
@@ -12,7 +12,7 @@ export const registerChatHandlers = (
     const user = usersMap.get(socket.id);
     if (user) {
       const newMessage: Message = {
-        id: nanoid(),
+        id: crypto.randomUUID(),
         from: socket.id,
         name: user.name,
         text: data.text,
