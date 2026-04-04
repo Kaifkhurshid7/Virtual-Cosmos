@@ -7,7 +7,7 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
 export const useSocket = () => {
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
-  const { setUsers, updateUser, removeUser, addMessage, setMessages, connectPeer, disconnectPeer, setTyping, addToast } = useCosmosStore();
+  const { setUsers, updateUser, removeUser, addMessage, setMessages, connectPeer, setTyping, addToast } = useCosmosStore();
 
   useEffect(() => {
     const socket = io(SERVER_URL);

@@ -4,6 +4,7 @@ import { EntryModal } from './components/EntryModal';
 import { Header } from './components/Header';
 import { CanvasLayer } from './components/CanvasLayer';
 import { ChatPanel } from './components/ChatPanel';
+import { Toast } from './components/Toast';
 import './index.css';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <CanvasLayer socket={socket} />
           </main>
           <ChatPanel socket={socket} />
+          <Toast />
           
           {/* HUD info */}
           <div className="fixed bottom-6 left-6 z-50 glass px-4 py-3 rounded-2xl border border-white/10 space-y-2 max-w-xs shadow-2xl">

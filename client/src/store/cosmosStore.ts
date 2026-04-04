@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { UserState, Message } from '../../../shared/types';
+import type { UserState, Message } from '../../../shared/types';
 
 interface CosmosStore {
   me: UserState | null;
