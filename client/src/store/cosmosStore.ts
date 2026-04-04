@@ -34,7 +34,10 @@ export const useCosmosStore = create<CosmosStore>((set) => ({
   toasts: [],
 
   setMe: (me) => set({ me }),
-  setUsers: (users) => set({ users: users.filter(u => u.id !== useCosmosStore.getState().me?.id) }),
+  setUsers: (users) => {
+    const meId = useCosmosStore.getState().me?.id;
+    set({ users: users.filter(u => u.id !== meId) });
+  },
   
   updateUser: (id, x, y) => set((state) => ({
     users: state.users.map(u => u.id === id ? { ...u, x, y } : u)

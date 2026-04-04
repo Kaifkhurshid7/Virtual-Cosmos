@@ -20,7 +20,7 @@ export interface ServerToClientEvents {
   'user:moved': (data: { id: string; x: number; y: number }) => void;
   'user:left': (id: string) => void;
   'proximity:connect': (data: { roomId: string; peerId: string; history: Message[] }) => void;
-  'proximity:disconnect': (data: { roomId: string }) => void;
+  'proximity:disconnect': (data: { roomId: string; peerId: string }) => void;
   'chat:message': (data: { roomId: string; from: string; text: string; ts: number; name: string; id: string }) => void;
   'chat:typing:ack': (data: { from: string }) => void;
 }

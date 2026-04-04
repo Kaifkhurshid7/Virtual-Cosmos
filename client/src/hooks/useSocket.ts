@@ -7,7 +7,7 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
 export const useSocket = () => {
   const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
-  const { setUsers, updateUser, removeUser, addMessage, setMessages, connectPeer, setTyping, addToast } = useCosmosStore();
+  const { setUsers, updateUser, removeUser, addMessage, setMessages, connectPeer, disconnectPeer, setTyping, addToast } = useCosmosStore();
 
   useEffect(() => {
     const s = io(SERVER_URL);
@@ -33,7 +33,8 @@ export const useSocket = () => {
       if (peer) addToast(`Connected to ${peer.name}`, 'success');
     });
 
-    s.on('proximity:disconnect', ({ roomId }) => {
+    s.on('proximity:disconnect', ({ roomId, peerId }) => {
+       disconnectPeer(peerId);
        addToast('Connection closed', 'info');
        console.log('Proximity disconnected for room:', roomId);
     });

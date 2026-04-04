@@ -60,12 +60,11 @@ export const registerProximityHandlers = (
   socket.on('proximity:leave', (data) => {
      const roomId = getRoomId(socket.id, data.targetId);
      socket.leave(roomId);
-     socket.emit('proximity:disconnect', { roomId });
-
      const targetSocket = io.sockets.sockets.get(data.targetId);
      if (targetSocket) {
         targetSocket.leave(roomId);
-        targetSocket.emit('proximity:disconnect', { roomId });
+        targetSocket.emit('proximity:disconnect', { roomId, peerId: socket.id });
      }
+     socket.emit('proximity:disconnect', { roomId, peerId: data.targetId });
   });
 };
