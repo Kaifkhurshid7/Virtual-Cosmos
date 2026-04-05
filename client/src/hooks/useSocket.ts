@@ -46,7 +46,7 @@ export const useSocket = () => {
       if (peer) addToast(`Connected to ${peer.name}`, 'success');
     });
 
-    s.on('proximity:disconnect', ({ roomId, peerId }) => {
+    s.on('proximity:disconnect', ({ peerId }) => {
        disconnectPeer(peerId);
        addToast('Connection closed', 'info');
     });

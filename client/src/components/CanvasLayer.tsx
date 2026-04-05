@@ -14,19 +14,27 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
   const { me } = useCosmosStore();
 
   useEffect(() => {
-    if (!canvasRef.current) return;
-
+    const isMounted = { current: true };
     const pixiApp = new PIXI.Application();
-    pixiApp.init({
-        width: 1200,
-        height: 700,
-        backgroundColor: 0x050517,
-        antialias: true,
-        resolution: window.devicePixelRatio || 1,
-        autoDensity: true,
-    }).then(() => {
+
+    const initPixi = async () => {
+      try {
+        await pixiApp.init({
+          width: 1200,
+          height: 700,
+          backgroundColor: 0x050517,
+          antialias: true,
+          resolution: window.devicePixelRatio || 1,
+          autoDensity: true,
+        });
+
+        if (!isMounted.current) {
+          pixiApp.destroy(true, { children: true, texture: true });
+          return;
+        }
+
         if (canvasRef.current) {
-            canvasRef.current.appendChild(pixiApp.canvas);
+          canvasRef.current.appendChild(pixiApp.canvas);
         }
 
         // Add Starfield
@@ -47,10 +55,19 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
         });
 
         setApp(pixiApp);
-    });
+      } catch (err) {
+        console.error('PixiJS init failed:', err);
+      }
+    };
+
+    initPixi();
 
     return () => {
-      pixiApp.destroy(true, { children: true, texture: true });
+      isMounted.current = false;
+      // We only destroy if the app was successfully initialized to avoid _cancelResize issue
+      if (pixiApp.canvas) {
+        pixiApp.destroy(true, { children: true, texture: true });
+      }
     };
   }, []);
 
