@@ -18,18 +18,12 @@ export const registerChatHandlers = (
         text: data.text,
         ts: Date.now(),
       };
-
-      // Add to room history
       let history = roomsMap.get(data.roomId) || [];
       history.push(newMessage);
-      
-      // Cap history (limit 100)
       if (history.length > 100) {
         history.shift();
       }
       roomsMap.set(data.roomId, history);
-
-      // Broadcast to room
       io.to(data.roomId).emit('chat:message', {
         roomId: data.roomId,
         from: socket.id,

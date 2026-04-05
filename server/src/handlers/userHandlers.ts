@@ -16,11 +16,8 @@ export const registerUserHandlers = (
       joinedAt: Date.now(),
     };
     usersMap.set(socket.id, newUser);
-    
     // Send current state to everybody
     io.emit('users:state', Array.from(usersMap.values()));
-    
-    // Acknowledge join
     if (cb) cb(true);
   });
 
@@ -29,6 +26,7 @@ export const registerUserHandlers = (
     if (user) {
       user.x = data.x;
       user.y = data.y;
+      usersMap.set(socket.id, user);
       // Broadcast movement to others
       socket.broadcast.emit('user:moved', { id: socket.id, x: data.x, y: data.y });
     }
@@ -37,5 +35,6 @@ export const registerUserHandlers = (
   socket.on('disconnect', () => {
     usersMap.delete(socket.id);
     io.emit('user:left', socket.id);
+    io.emit('users:state', Array.from(usersMap.values()));
   });
 };

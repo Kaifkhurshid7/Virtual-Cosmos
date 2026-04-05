@@ -35,8 +35,15 @@ export const useCosmosStore = create<CosmosStore>((set) => ({
 
   setMe: (me) => set({ me }),
   setUsers: (users) => {
-    const meId = useCosmosStore.getState().me?.id;
-    set({ users: users.filter(u => u.id !== meId) });
+    const socketId = useCosmosStore.getState().me?.id;
+    // If we don't know our id yet, setMe will be called after users:state
+    if (!socketId && users.length > 0) {
+      // Try to find self by matching to window.socket.id if available
+      // But in useSocket, we setMe after join
+      set({ users });
+      return;
+    }
+    set({ users: users.filter(u => u.id !== socketId) });
   },
   
   updateUser: (id, x, y) => set((state) => ({

@@ -32,7 +32,12 @@ export const useSocket = () => {
       setConnected(false);
     });
 
-    s.on('users:state', (users) => setUsers(users));
+    s.on('users:state', (users) => {
+      // Find self by socket.id
+      const self = users.find(u => u.id === s.id);
+      if (self) useCosmosStore.getState().setMe(self);
+      setUsers(users);
+    });
     s.on('user:moved', (data) => updateUser(data.id, data.x, data.y));
     s.on('user:left', (id) => {
        removeUser(id);

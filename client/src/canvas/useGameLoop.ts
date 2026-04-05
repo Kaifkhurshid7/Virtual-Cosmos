@@ -12,7 +12,7 @@ export const useGameLoop = (app: PIXI.Application | null, socket: Socket | null)
   const { me, users, activeRooms, setMe } = useCosmosStore();
   const avatarsRef = useRef<Record<string, AvatarSprite>>({});
   const keysRef = useRef<Record<string, boolean>>({});
-  
+
   // Refs for ticker sync to avoid frequent re-binding
   const stateRef = useRef({ me, users, activeRooms });
   const pendingEmits = useRef(new Set<string>());
@@ -51,10 +51,12 @@ export const useGameLoop = (app: PIXI.Application | null, socket: Socket | null)
       if (dx !== 0 || dy !== 0) {
         const nextX = Math.max(30, Math.min(1170, currentMe.x + dx));
         const nextY = Math.max(30, Math.min(670, currentMe.y + dy));
-        
+
+        // Update local position immediately for smooth rendering
+        setMe({ ...currentMe, x: nextX, y: nextY });
+        // Only emit if changed
         if (nextX !== currentMe.x || nextY !== currentMe.y) {
-           setMe({ ...currentMe, x: nextX, y: nextY });
-           socket.emit('user:move', { x: nextX, y: nextY });
+          socket.emit('user:move', { x: nextX, y: nextY });
         }
       }
 
@@ -77,34 +79,31 @@ export const useGameLoop = (app: PIXI.Application | null, socket: Socket | null)
         sprite.updatePosition(user.x, user.y);
 
         // 4. Proximity Check
+        if (user.id === currentMe.id) return; // Don't check self
         const distDx = currentMe.x - user.x;
         const distDy = currentMe.y - user.y;
         const dist = Math.sqrt(distDx * distDx + distDy * distDy);
-        
+
         const isConnected = currentRooms.has(user.id);
         const isPending = pendingEmits.current.has(user.id);
 
         if (!isConnected && !isPending && dist < RADIUS) {
           pendingEmits.current.add(user.id);
           socket.emit('proximity:enter', { targetId: user.id });
-          // Clear pending after a short timeout if no ack received
           setTimeout(() => pendingEmits.current.delete(user.id), 5000);
         } else if (isConnected && dist > RADIUS + HYSTERESIS) {
           socket.emit('proximity:leave', { targetId: user.id });
-          // We don't remove from set here, connectPeer/disconnectPeer handles store.
-          // But we need to allow re-entering if they move away.
-          // The socket handler will call disconnectPeer which clears isConnected.
         }
-        
-        sprite.setProximity(isConnected);
+
+        if (sprite.setProximity) sprite.setProximity(isConnected);
       });
 
       // 5. Cleanup disconnected users sprites
       Object.keys(avatarsRef.current).forEach(id => {
         if (id !== currentMe.id && !currentUsers.find(u => u.id === id)) {
-           app.stage.removeChild(avatarsRef.current[id]);
-           delete avatarsRef.current[id];
-           pendingEmits.current.delete(id);
+          app.stage.removeChild(avatarsRef.current[id]);
+          delete avatarsRef.current[id];
+          pendingEmits.current.delete(id);
         }
       });
     };
@@ -113,6 +112,6 @@ export const useGameLoop = (app: PIXI.Application | null, socket: Socket | null)
     return () => {
       app.ticker.remove(tickerHandler);
     };
-  // We only depend on app/socket to bind once. State is tracked via stateRef.
+    // We only depend on app/socket to bind once. State is tracked via stateRef.
   }, [app, socket, setMe]);
 };
