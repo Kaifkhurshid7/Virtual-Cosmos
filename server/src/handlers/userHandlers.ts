@@ -6,7 +6,7 @@ export const registerUserHandlers = (
   io: Server<ClientToServerEvents, ServerToClientEvents>,
   socket: Socket<ClientToServerEvents, ServerToClientEvents>
 ) => {
-  socket.on('user:join', (data) => {
+  socket.on('user:join', (data, cb) => {
     const newUser: UserState = {
       id: socket.id,
       name: data.name,
@@ -19,6 +19,9 @@ export const registerUserHandlers = (
     
     // Send current state to everybody
     io.emit('users:state', Array.from(usersMap.values()));
+    
+    // Acknowledge join
+    if (cb) cb(true);
   });
 
   socket.on('user:move', (data) => {

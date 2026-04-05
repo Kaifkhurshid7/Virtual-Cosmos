@@ -8,12 +8,12 @@ import { Toast } from './components/Toast';
 import './index.css';
 
 function App() {
-  const socket = useSocket();
+  const { socket, connected, joinSpace } = useSocket();
   const { me } = useCosmosStore();
 
   return (
     <div className="relative w-full h-full min-h-screen bg-[#050517] overflow-hidden cosmic-gradient">
-      {!me && <EntryModal socket={socket} />}
+      {!me && <EntryModal socket={socket} connected={connected} joinSpace={joinSpace} />}
       
       {me && (
         <>

@@ -7,27 +7,40 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
 export const useSocket = () => {
   const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
+  const [connected, setConnected] = useState(false);
   const { setUsers, updateUser, removeUser, addMessage, setMessages, connectPeer, disconnectPeer, setTyping, addToast } = useCosmosStore();
 
   useEffect(() => {
-    const s = io(SERVER_URL);
+    const s: Socket<ServerToClientEvents, ClientToServerEvents> = io(SERVER_URL, {
+      autoConnect: false,
+      transports: ['websocket'],
+    });
+
     setSocket(s);
 
-    s.on('users:state', (users) => {
-      setUsers(users);
+    s.on('connect', () => {
+      console.log('Connected:', s.id);
+      setConnected(true);
     });
 
-    s.on('user:moved', ({ id, x, y }) => {
-      updateUser(id, x, y);
+    s.on('connect_error', (err) => {
+      console.error('Socket error:', err);
+      setConnected(false);
     });
 
+    s.on('disconnect', () => {
+      setConnected(false);
+    });
+
+    s.on('users:state', (users) => setUsers(users));
+    s.on('user:moved', (data) => updateUser(data.id, data.x, data.y));
     s.on('user:left', (id) => {
-      removeUser(id);
-      addToast('User left', 'info');
+       removeUser(id);
+       addToast('Explorer left', 'info');
     });
 
-    s.on('proximity:connect', ({ roomId, peerId, history }) => {
-      setMessages(roomId, history);
+    s.on('proximity:connect', ({ peerId, history }) => {
+      setMessages(peerId, history); // Using peerId as room ID for 1:1 chat
       connectPeer(peerId);
       const peer = useCosmosStore.getState().users.find(u => u.id === peerId);
       if (peer) addToast(`Connected to ${peer.name}`, 'success');
@@ -36,7 +49,6 @@ export const useSocket = () => {
     s.on('proximity:disconnect', ({ roomId, peerId }) => {
        disconnectPeer(peerId);
        addToast('Connection closed', 'info');
-       console.log('Proximity disconnected for room:', roomId);
     });
 
     s.on('chat:message', (data) => {
@@ -59,5 +71,28 @@ export const useSocket = () => {
     };
   }, []);
 
-  return socket;
+  const joinSpace = (name: string, color: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (!socket) return resolve(false);
+
+      const onConnect = () => {
+        socket.off('connect', onConnect);
+        const x = 100 + Math.random() * 1000;
+        const y = 100 + Math.random() * 500;
+        
+        socket.emit('user:join', { name, x, y, color }, (success) => {
+          resolve(success);
+        });
+      };
+
+      if (socket.connected) {
+        onConnect();
+      } else {
+        socket.connect();
+        socket.on('connect', onConnect);
+      }
+    });
+  };
+
+  return { socket, connected, joinSpace };
 };

@@ -9,36 +9,34 @@ const COLORS = [
 
 interface EntryModalProps {
   socket: Socket | null;
+  connected: boolean;
+  joinSpace: (name: string, color: string) => Promise<boolean>;
 }
 
-export const EntryModal = ({ socket }: EntryModalProps) => {
+export const EntryModal = ({ socket, joinSpace }: EntryModalProps) => {
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
+  const [isJoining, setIsJoining] = useState(false);
   const { setMe } = useCosmosStore();
 
-  const [isConnected, setIsConnected] = useState(socket?.connected || false);
-
-  useState(() => {
-    if (!socket) return;
-    const update = () => setIsConnected(socket.connected);
-    socket.on('connect', update);
-    socket.on('disconnect', update);
-    return () => {
-      socket.off('connect', update);
-      socket.off('disconnect', update);
-    };
-  });
-
-  const handleJoin = () => {
-    if (!name.trim() || !socket || !socket.connected) return;
+  const handleJoin = async () => {
+    if (!name.trim() || isJoining) return;
     
-    // Random position
-    const x = 100 + Math.random() * 1000;
-    const y = 100 + Math.random() * 500;
+    setIsJoining(true);
+    const success = await joinSpace(name, color);
 
-    const userData = { name, x, y, color };
-    socket.emit('user:join', userData);
-    setMe({ id: socket.id || 'me', ...userData, joinedAt: Date.now() });
+    if (success && socket) {
+      setMe({ 
+        id: socket.id || 'me', 
+        name, 
+        x: 600, 
+        y: 350, 
+        color, 
+        joinedAt: Date.now() 
+      });
+    } else {
+      setIsJoining(false);
+    }
   };
 
   return (
@@ -81,10 +79,10 @@ export const EntryModal = ({ socket }: EntryModalProps) => {
 
           <button
             onClick={handleJoin}
-            disabled={!name.trim() || !isConnected}
+            disabled={!name.trim() || isJoining}
             className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/30 active:scale-95"
           >
-            {!isConnected ? 'Connecting...' : 'Launch into Cosmos'}
+            {isJoining ? 'Joining Cosmos...' : 'Launch into Cosmos'}
           </button>
         </div>
       </motion.div>

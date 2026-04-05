@@ -26,7 +26,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  'user:join': (data: { name: string; x: number; y: number; color: string }) => void;
+  'user:join': (data: { name: string; x: number; y: number; color: string }, cb: (success: boolean) => void) => void;
   'user:move': (data: { x: number; y: number }) => void;
   'proximity:enter': (data: { targetId: string }) => void;
   'proximity:leave': (data: { targetId: string }) => void;
