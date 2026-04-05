@@ -32,11 +32,13 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
 
         // If component unmounted before init finished, destroy immediately
         if (isDestroyed) {
-          pixiApp.destroy(true, { children: true, texture: true });
+          if (pixiApp.renderer) {
+            pixiApp.destroy(true, { children: true, texture: true });
+          }
           return;
         }
 
-        if (canvasRef.current) {
+        if (canvasRef.current && pixiApp.renderer) {
           canvasRef.current.appendChild(pixiApp.canvas);
         }
 
@@ -56,7 +58,10 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
            stars.alpha = 0.5 + Math.sin(Date.now() / 1000) * 0.2;
         });
 
-        setApp(pixiApp);
+        // Only set app if still mounted
+        if (!isDestroyed) {
+          setApp(pixiApp);
+        }
       } catch (err) {
         console.error('PixiJS init failed:', err);
       }
@@ -67,8 +72,8 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
     return () => {
       isDestroyed = true;
       setApp(null);
-      // Only destroy if it was initialized or we are cleaning up the instance
-      if (pixiApp.canvas) {
+      // Avoid crash: Application.canvas is a getter that throws if renderer is undefined
+      if (pixiApp.renderer) {
         pixiApp.destroy(true, { children: true, texture: true });
       }
     };
