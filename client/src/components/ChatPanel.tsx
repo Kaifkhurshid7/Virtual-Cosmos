@@ -12,6 +12,7 @@ interface ChatPanelProps {
 export const ChatPanel = ({ socket }: ChatPanelProps) => {
   const { me, users, messages, activeRooms, typingPeers } = useCosmosStore();
   const [text, setText] = useState('');
+  const [isDismissed, setIsDismissed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // For MVP, we only show one active chat (the first one)
@@ -20,6 +21,11 @@ export const ChatPanel = ({ socket }: ChatPanelProps) => {
   const roomId = me && peer ? getRoomId(me.id, peer.id) : null;
   const roomMessages = roomId ? messages[roomId] || [] : [];
   const isTyping = peerId ? typingPeers[peerId] : false;
+
+  // Re-enable if the peer changes (e.g. moving to a new person)
+  useEffect(() => {
+    setIsDismissed(false);
+  }, [peerId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -41,7 +47,7 @@ export const ChatPanel = ({ socket }: ChatPanelProps) => {
 
   return (
     <AnimatePresence>
-      {peer && (
+      {peer && !isDismissed && (
         <motion.div
            initial={{ x: 400, opacity: 0 }}
            animate={{ x: 0, opacity: 1 }}
@@ -62,7 +68,10 @@ export const ChatPanel = ({ socket }: ChatPanelProps) => {
                 <span className="text-xs text-green-400 capitalize">Active Connection</span>
               </div>
             </div>
-            <button className="text-gray-400 hover:text-white transition-colors">
+            <button 
+              onClick={() => setIsDismissed(true)}
+              className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-lg"
+            >
               <X size={20} />
             </button>
           </div>
