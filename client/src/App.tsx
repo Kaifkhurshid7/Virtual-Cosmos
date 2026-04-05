@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { CanvasLayer } from './components/CanvasLayer';
 import { ChatPanel } from './components/ChatPanel';
 import { Toast } from './components/Toast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
 function App() {
@@ -19,7 +20,9 @@ function App() {
         <>
           <Header />
           <main className="w-full h-full pt-16 flex items-center justify-center p-8">
-            <CanvasLayer socket={socket} />
+            <ErrorBoundary>
+              <CanvasLayer socket={socket} />
+            </ErrorBoundary>
           </main>
           <ChatPanel socket={socket} />
           <Toast />

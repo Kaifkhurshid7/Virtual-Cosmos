@@ -11,13 +11,15 @@ interface CanvasLayerProps {
 export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [app, setApp] = useState<PIXI.Application | null>(null);
+  const appRef = useRef<PIXI.Application | null>(null);
   const { me } = useCosmosStore();
 
   useEffect(() => {
-    const isMounted = { current: true };
+    let isDestroyed = false;
     const pixiApp = new PIXI.Application();
+    appRef.current = pixiApp;
 
-    const initPixi = async () => {
+    const init = async () => {
       try {
         await pixiApp.init({
           width: 1200,
@@ -28,7 +30,8 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
           autoDensity: true,
         });
 
-        if (!isMounted.current) {
+        // If component unmounted before init finished, destroy immediately
+        if (isDestroyed) {
           pixiApp.destroy(true, { children: true, texture: true });
           return;
         }
@@ -49,7 +52,6 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
         }
         pixiApp.stage.addChild(stars);
         
-        // Simple flicker animation
         pixiApp.ticker.add(() => {
            stars.alpha = 0.5 + Math.sin(Date.now() / 1000) * 0.2;
         });
@@ -60,11 +62,12 @@ export const CanvasLayer = ({ socket }: CanvasLayerProps) => {
       }
     };
 
-    initPixi();
+    init();
 
     return () => {
-      isMounted.current = false;
-      // We only destroy if the app was successfully initialized to avoid _cancelResize issue
+      isDestroyed = true;
+      setApp(null);
+      // Only destroy if it was initialized or we are cleaning up the instance
       if (pixiApp.canvas) {
         pixiApp.destroy(true, { children: true, texture: true });
       }
