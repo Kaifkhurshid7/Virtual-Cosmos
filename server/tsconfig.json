@@ -3,11 +3,13 @@
     "target": "ESNext",
     "module": "CommonJS",
     "outDir": "./dist",
+    "rootDir": "..",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@shared/*": ["../shared/*"]
     }

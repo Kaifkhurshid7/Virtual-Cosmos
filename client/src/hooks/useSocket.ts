@@ -36,6 +36,7 @@ export const useSocket = () => {
       // Find self by socket.id
       const self = users.find(u => u.id === s.id);
       if (self) useCosmosStore.getState().setMe(self);
+      // Always include self in users list for rendering
       setUsers(users);
     });
     s.on('user:moved', (data) => updateUser(data.id, data.x, data.y));
